@@ -1,5 +1,11 @@
 <div class = "sidenav">
-    <a href="/player/player_create">Create profile</a>
-    <a href="/player/player_update">Edit profile</a>
-    <a href="/player/player_list">Players</a>
+    {% if user.is_authenticated %}
+        <span class = "navbar-text">Logged in as {{user.username}}</span>
+        <a href="/logout">Logout</a>
+    {% else %}
+        <a href="/login">Sign in</a>.
+    {% endif %}
+    <a href="/player_create">Create profile</a>
+    <a href="/player_update">Edit profile</a>
+    <a href="/player_list">Players</a>
 </div>

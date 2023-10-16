@@ -1,8 +1,9 @@
+from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import View, ListView
-from .forms import PlayerCreationForm, PlayerForm
+from .forms import PlayerForm, PlayerCreationForm, PlayerDetailForm
 from .models import Player
 
 
@@ -17,7 +18,7 @@ class PlayerCreateUpdateBaseView(View):
     model = Player
     form_class = PlayerForm
 
-    template_name = "player_update_form.html"
+    template_name = "player/player_update_form.html"
 
     def get_context_data(self, **kwargs):
         data = dict()
@@ -43,9 +44,10 @@ class PlayerCreate(PlayerCreateUpdateBaseView):
 
     def post(self, request):
         form = self.form_class(request.POST)
-        print(form.is_valid())
+        print("PLAYER CREATE is valid =", form.is_valid())
         if form.is_valid():
-            form.save()
+            player = form.save()
+            login(request, player)
             return HttpResponseRedirect(self.get_success_url())
         else:
             context = {'form': form}
@@ -61,13 +63,39 @@ class PlayerCreate(PlayerCreateUpdateBaseView):
 class PlayerUpdate(PlayerCreateUpdateBaseView):
     """ Update player details. """
 
-    pass
+    def post(self, request):
+        form = self.form_class(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+        context = {'form': form}
+        return render(request, self.template_name, context)
+
+    def get(self, request):
+        context = self.get_context_data()
+        player = request.user
+        form = self.form_class(instance=player)
+        context['form'] = form
+        return render(request, self.template_name, context)
 
 
 class PlayerDetail(View):
     """ Show player details. """
 
-    pass
+    model = Player
+    form_class = PlayerDetailForm
+
+    template_name = 'player/player_detail.html'
+
+    def get(self, request, pk):
+        # player_id = request.GET['pk']
+        player_id = pk
+        try:
+            player = Player.objects.get(pk=player_id)
+        except:
+            print("Dodać obsługę niepoprawnego ID playera")
+        form = self.form_class(instance=player)
+        context = {'form': form}
+        return render(request, self.template_name, context)
 
 
 class PlayerList(ListView):
@@ -78,6 +106,5 @@ class PlayerList(ListView):
     model = Player
 
     def get(self, request):
-        context = dict()
-        context['users'] = Player.objects.all()
+        context = {'users': Player.objects.all()}
         return render(request, 'player/player_list.html', context)

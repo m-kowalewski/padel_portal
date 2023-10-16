@@ -6,7 +6,7 @@
     Users:
     {% for user in users %}
         <br>
-        <a href="{% url 'player:player_update' user.id %}">
+        <a href="{% url 'player:player_detail' user.id %}">
             {{ user.id }}
             {{user}}
             {{user.username}}
