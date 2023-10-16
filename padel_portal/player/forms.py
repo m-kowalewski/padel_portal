@@ -15,3 +15,14 @@ class PlayerForm(ModelForm):
     class Meta:
         model = Player
         fields = ["username", "first_name", "email"]
+
+
+class PlayerDetailForm(ModelForm):
+    class Meta:
+        model = Player
+        fields = ["username", "first_name"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].disabled = True
+        self.fields['first_name'].disabled = True
