@@ -1,7 +1,9 @@
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.generic import View, ListView
 from .forms import PlayerForm, PlayerCreationForm, PlayerDetailForm
 from .models import Player
@@ -44,7 +46,6 @@ class PlayerCreate(PlayerCreateUpdateBaseView):
 
     def post(self, request):
         form = self.form_class(request.POST)
-        print("PLAYER CREATE is valid =", form.is_valid())
         if form.is_valid():
             player = form.save()
             login(request, player)
@@ -60,6 +61,7 @@ class PlayerCreate(PlayerCreateUpdateBaseView):
         return render(request, 'registration/player_create.html', context)
 
 
+@method_decorator(login_required(login_url="/login"), name="dispatch")
 class PlayerUpdate(PlayerCreateUpdateBaseView):
     """ Update player details. """
 
@@ -78,6 +80,8 @@ class PlayerUpdate(PlayerCreateUpdateBaseView):
         return render(request, self.template_name, context)
 
 
+@method_decorator(login_required(login_url="/login"), name="dispatch")
+@method_decorator(permission_required("player.view_player", login_url="/login", raise_exception=True), name="dispatch")
 class PlayerDetail(View):
     """ Show player details. """
 
@@ -87,7 +91,6 @@ class PlayerDetail(View):
     template_name = 'player/player_detail.html'
 
     def get(self, request, pk):
-        # player_id = request.GET['pk']
         player_id = pk
         try:
             player = Player.objects.get(pk=player_id)
@@ -98,6 +101,8 @@ class PlayerDetail(View):
         return render(request, self.template_name, context)
 
 
+@method_decorator(login_required(login_url="/login"), name="dispatch")
+@method_decorator(permission_required("player.view_player", login_url="/login", raise_exception=True), name="dispatch")
 class PlayerList(ListView):
     """ List players. """
 
